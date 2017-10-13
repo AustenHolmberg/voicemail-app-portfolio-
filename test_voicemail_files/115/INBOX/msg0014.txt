@@ -1,0 +1,17 @@
+;
+; Message Information file
+;
+[message]
+origmailbox=115
+context=to-internal
+macrocontext=
+exten=115
+rdnis=unknown
+priority=3
+callerchan=SIP/66.193.176.35-00000292
+callerid=13016428931
+origdate=Thu Jun 15 09:02:43 PM UTC 2017
+origtime=1497560563
+category=
+flag=
+duration=34

@@ -1,0 +1,17 @@
+;
+; Message Information file
+;
+[message]
+origmailbox=115
+context=to-internal
+macrocontext=
+exten=115
+rdnis=unknown
+priority=3
+callerchan=SIP/callcentric-conference-0000066c
+callerid=17089425800
+origdate=Fri Feb 10 04:22:58 PM UTC 2017
+origtime=1486743778
+category=
+flag=
+duration=1

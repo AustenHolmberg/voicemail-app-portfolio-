@@ -1,0 +1,134 @@
+<html lang="en">
+    <head>
+		<link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">                  
+		<link href="/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">                  
+		<link href="/bower_components/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet">                  
+                                                                                
+		<script src="/bower_components/jquery/dist/jquery.min.js"></script> 
+		<script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script> 
+		<script src="/bower_components/datatables.net/js/jquery.dataTables.min.js"></script> 
+		<script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script> 
+		<script src="/bower_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script> 
+
+        <script>
+            $(document).ready(function() {
+                var voicemail_table = $('#voicemail_table').DataTable({
+                    "dom": '<"toolbar">rtl<"bottom"p>',
+                    "columnDefs": [
+                        {"width": "2%", "targets": [0, 3]},
+                        {"width": "20%", "targets": 1},
+                        {"width": "4%", "targets": 2}
+                    ]
+                });
+                
+                $('div.toolbar').append('<input type="text" class="form-control" id="extension_filter" placeholder="Filter by extension #">');
+                $('div.toolbar').append('<button type="button" class="btn btn-danger" id="delete_selected" style="float: right">Delete selected</button>');
+                $('div.toolbar').append('<button type="button" class="btn btn-default" id="select_all" style="float: right; margin-right: 5px">Select all</button>');
+
+                $('#extension_filter').keyup(function() {
+                    voicemail_table.column(0).search( this.value ).draw();
+                });
+
+                $('#select_all').click(function() {
+                    $(".delete_checkbox").prop('checked', true);
+                });
+
+                $('#delete_selected').click(function() {
+                    var voicemail_urls = [];
+                    $('.delete_checkbox:checked').each(function() {
+                        console.log("Pushing: " + $(this).parents().eq(1).find('source').attr('src'));
+                        voicemail_urls.push($(this).parents().eq(1).find('source').attr('src'));
+                        voicemail_table
+                            .row ( $(this).closest('tr') )
+                            .remove();
+                    });
+                    voicemail_table.draw();
+
+                    $.ajax({                                                  
+                        type: "POST",                                         
+                        url: "/delete_voicemail",                        
+                        data: JSON.stringify({voicemail_urls: voicemail_urls}),
+                        contentType: "application/json",
+                        success: function(data){ console.log(data); },
+                        error: function (jqXHR, exception) {                  
+                            console.log(exception);                           
+                        }                                                     
+                    });                                                       
+                });
+            });
+        </script>
+        <style>
+            audio {
+                width: 70% !important;
+            }
+            .bootstrap-select {
+                width: 140px !important;    
+                float: right !important;
+            }
+            .selectpicker {
+                display: block !important;
+            }
+        </style>
+    </head>
+    <body>
+
+    <div class="container" style="width: 80%">
+
+        <div class="row">
+            <div class="col-12" style="margin-top: 20px; text-align: center">
+                <h1 style="margin: 0 auto">Parthenon Voicemail</h1>
+            </div>
+        </div>
+
+        <hr style="margin-top: 8px">
+
+        <div class="row">
+            <div class="col-12">
+                <table id="voicemail_table" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Extension #</th>
+                            <th>Audio</th>
+                            <th>Created</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in voicemail %}
+                            {% for message in item.messages %} 
+                                <tr>
+                                    <td>{{ item.extension }}</td>
+                                    <td style="text-align: center">
+                                        <audio controls preload="none" style="float: left">
+                                            <source src="{{ message.filename }}" type="audio/mpeg">
+                                        </audio>
+                                        <select class="selectpicker">
+                                            <option selected disabled>Playback speed</option>
+                                            <option value="1">1x</option>
+                                            <option value="1.5">1.5x</option>
+                                            <option value="2">2x</option>
+                                        </select>
+                                    </td>
+                                    <td>{{ message.creation_date }}</td>
+                                    <td>
+                                        <input class="delete_checkbox" type="checkbox">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    </body>
+    <script>
+        $(".selectpicker").selectpicker();
+        $('.selectpicker').on('changed.bs.select', function (e) {
+            var newRate = parseFloat(e.currentTarget.value);
+            $(this).parent().prev()[0].playbackRate = newRate;
+        });
+    </script>
+</html>
